@@ -1,4 +1,4 @@
-# Cube D3 MCP Server
+# Cube MCP Server
 
 A Model Context Protocol (MCP) server that provides chat functionality with Cube's AI agent for analytics and data exploration.
 
@@ -18,9 +18,9 @@ For Cursor and Claude Desktop, add this to your MCP settings:
 ```json
 {
   "mcpServers": {
-    "cube-d3-mcp-server": {
+    "cube-mcp-server": {
       "command": "npx",
-      "args": ["cube-d3-mcp-server"],
+      "args": ["@cube-dev/mcp-server"],
       "env": {
         "CUBE_API_KEY": "your_api_key_here",
         "CUBE_TENANT_NAME": "your_tenant_name",

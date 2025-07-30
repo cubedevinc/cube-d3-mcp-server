@@ -20,7 +20,7 @@ export class CubeD3MCPServer {
   constructor() {
     this.server = new Server(
       {
-        name: "cube-d3-mcp-server",
+        name: "@cube-dev/mcp-server",
         version: "1.0.0",
       },
       {
@@ -99,7 +99,7 @@ export class CubeD3MCPServer {
           resources: {},
         },
         serverInfo: {
-          name: "cube-d3-mcp-server",
+          name: "@cube-dev/mcp-server",
           version: "1.0.0",
         },
       };
@@ -200,7 +200,7 @@ export class CubeD3MCPServer {
                 },
                 {
                   type: "text",
-                  text: `\n\n📊 **Cube D3 Chat Session Complete**\nChat ID: ${chatId}\nTotal messages processed: ${allMessages.length}`,
+                  text: `\n\n📊 **Cube Chat Session Complete**\nChat ID: ${chatId}\nTotal messages processed: ${allMessages.length}`,
                 },
               ],
             };
@@ -250,7 +250,7 @@ export class CubeD3MCPServer {
               {
                 uri,
                 mimeType: "text/plain",
-                text: "Cube D3 MCP Server\\nVersion: 1.0.0\\nCreated for Cube.js enterprise examples\\n\\nThis server provides chat functionality for analytics and data exploration with Cube AI.",
+                                  text: "Cube MCP Server\\nVersion: 1.0.0\\nCreated for Cube.js enterprise examples\\n\\nThis server provides chat functionality for analytics and data exploration with Cube AI.",
               },
             ],
           };
@@ -262,10 +262,10 @@ export class CubeD3MCPServer {
                 uri,
                 mimeType: "application/json",
                 text: JSON.stringify({
-                  serverName: "cube-d3-mcp-server",
+                  serverName: "@cube-dev/mcp-server",
                   version: "1.0.0",
                   features: ["chat"],
-                  description: "A Cube D3 MCP server for analytics and data exploration",
+                  description: "A Cube MCP server for analytics and data exploration",
                 }, null, 2),
               },
             ],
@@ -280,7 +280,7 @@ export class CubeD3MCPServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error("Cube D3 MCP Server running on stdio");
+    console.error("Cube MCP Server running on stdio");
   }
 }
 
