@@ -1,0 +1,48 @@
+{
+  "name": "cube-d3-mcp-server",
+  "version": "1.0.0",
+  "description": "A Model Context Protocol (MCP) server that provides chat functionality with Cube's AI agent for analytics and data exploration",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "cube-d3-mcp-server": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "jsonwebtoken": "^9.0.0",
+    "node-fetch": "^3.3.0",
+    "dotenv": "^16.0.0"
+  },
+  "keywords": [
+    "mcp", 
+    "model-context-protocol", 
+    "server", 
+    "cube", 
+    "analytics", 
+    "ai", 
+    "data-exploration",
+    "business-intelligence"
+  ],
+  "author": "Cube Dev Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cube-js/cube.git",
+    "directory": "examples-demos/simple-mcp-server"
+  },
+  "homepage": "https://cube.dev",
+  "bugs": {
+    "url": "https://github.com/cube-js/cube/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "index.js",
+    "README.md"
+  ]
+}
