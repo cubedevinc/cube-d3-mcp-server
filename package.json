@@ -2,10 +2,8 @@
   "name": "@cube-dev/mcp-server",
   "version": "1.0.3",
   "description": "A Model Context Protocol (MCP) server that provides chat functionality with Cube's AI agent for analytics and data exploration",
-  "main": "index.js",
   "type": "module",
   "bin": {
-    "@cube-dev/mcp-server": "./index.js",
     "mcp-server": "./index.js"
   },
   "scripts": {
