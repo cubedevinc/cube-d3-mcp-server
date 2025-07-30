@@ -37,17 +37,7 @@ For Cursor and Claude Desktop, add this to your MCP settings:
 * CUBE_TENANT_NAME - Your tenant name from the URL, e.g. 'acme' in https://acme.cubecloud.dev
 * CUBE_AGENT_ID - Navigate to **Admin -> Agent -> Click on Agent** to find it.
 
-## Example Interactions
-
-Once connected to an MCP client, you can:
-
-1. **Chat with Cube AI**: "Show me revenue trends for the last 6 months"
-2. **Ask data questions**: "What are our top performing products?"
-3. **Explore analytics**: "Can you analyze our user growth metrics?"
-4. **Read server info**: Access server information resource
-5. **View configuration**: Access example configuration data
-
-### Cube Chat Examples
+## Cube Chat Examples
 
 Ask questions like "Show me revenue trends" or "What are our top products?" to get real-time analytics responses with data visualizations and SQL queries.
 
