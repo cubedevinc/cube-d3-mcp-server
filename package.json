@@ -4,7 +4,7 @@
   "description": "A Model Context Protocol (MCP) server that provides chat functionality with Cube's AI agent for analytics and data exploration",
   "type": "module",
   "bin": {
-    "mcp-server": "./index.js"
+    "mcp-server": "index.js"
   },
   "scripts": {
     "start": "node index.js",
@@ -12,9 +12,9 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
+    "dotenv": "^16.0.0",
     "jsonwebtoken": "^9.0.0",
-    "node-fetch": "^3.3.0",
-    "dotenv": "^16.0.0"
+    "node-fetch": "^3.3.0"
   },
   "keywords": [
     "mcp",
@@ -30,7 +30,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cube-js/cube.git",
+    "url": "git+https://github.com/cube-js/cube.git",
     "directory": "examples-demos/simple-mcp-server"
   },
   "homepage": "https://cube.dev",
