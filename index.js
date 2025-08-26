@@ -37,7 +37,7 @@ export class CubeD3MCPServer {
       tenantName: process.env.CUBE_TENANT_NAME,
       agentId: process.env.CUBE_AGENT_ID,
       apiKey: process.env.CUBE_API_KEY, // API Key from Admin → Agents → API Key
-      externalId: process.env.CUBE_EXTERNAL_ID, // External user ID for session generation
+      externalId: process.env.USER_ID, // External user ID for session generation
     };
 
     this.setupHandlers();
@@ -114,7 +114,7 @@ export class CubeD3MCPServer {
     // Use provided externalId or fall back to configured one
     const userExternalId = externalId || this.cubeConfig.externalId;
     if (!userExternalId) {
-      throw new Error("External ID not provided. Set CUBE_EXTERNAL_ID environment variable or provide externalId parameter.");
+      throw new Error("External ID not provided. Set USER_ID environment variable or provide externalId parameter.");
     }
 
     // Generate session and exchange for token
@@ -177,7 +177,7 @@ export class CubeD3MCPServer {
               },
               externalId: {
                 type: "string",
-                description: "Unique identifier for the user (optional, falls back to CUBE_EXTERNAL_ID environment variable)",
+                description: "Unique identifier for the user (optional, falls back to USER_ID environment variable)",
               },
               userAttributes: {
                 type: "array",
@@ -288,7 +288,7 @@ export class CubeD3MCPServer {
               content: [
                 {
                   type: "text",
-                  text: `❌ Error calling Cube API: ${error.message}\n\nPlease ensure your environment variables are set:\n- CUBE_API_KEY: Your API key from Admin → Agents → API Key\n- CUBE_TENANT_NAME: Your tenant name (e.g., "acme")\n- CUBE_AGENT_ID: Your agent ID (e.g., "2")\n- CUBE_EXTERNAL_ID: External user ID for session generation (e.g., "user@example.com")\n- CUBE_AUTH_BASE_URL: (optional) Override auth base URL if different from https://{tenant}.cubecloud.dev`,
+                  text: `❌ Error calling Cube API: ${error.message}\n\nPlease ensure your environment variables are set:\n- CUBE_API_KEY: Your API key from Admin → Agents → API Key\n- CUBE_TENANT_NAME: Your tenant name (e.g., "acme")\n- CUBE_AGENT_ID: Your agent ID (e.g., "2")\n- USER_ID: External user ID for session generation (e.g., "user@example.com")\n- CUBE_AUTH_BASE_URL: (optional) Override auth base URL if different from https://{tenant}.cubecloud.dev`,
                 },
               ],
             };

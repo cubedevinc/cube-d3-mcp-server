@@ -25,7 +25,7 @@ For Cursor and Claude Desktop, add this to your MCP settings:
         "CUBE_API_KEY": "your_api_key_here",
         "CUBE_TENANT_NAME": "your_tenant_name",
         "CUBE_AGENT_ID": "your_agent_id",
-        "CUBE_EXTERNAL_ID": "user@example.com"
+        "USER_ID": "user@example.com"
       }
     }
     
@@ -38,7 +38,7 @@ For Cursor and Claude Desktop, add this to your MCP settings:
 * CUBE_API_KEY - Navigate to **Admin -> Agent -> Click on Agent -> Enable API Key**.
 * CUBE_TENANT_NAME - Your tenant name from the URL, e.g. 'acme' in https://acme.cubecloud.dev
 * CUBE_AGENT_ID - Navigate to **Admin -> Agent -> Click on Agent** to find it.
-* CUBE_EXTERNAL_ID - A unique identifier for the user (e.g., email address or user ID) used for session generation and personalization.
+* USER_ID - A unique identifier for the user (e.g., email address or user ID) used for session generation and personalization.
 
 ## Cube Chat Examples
 
