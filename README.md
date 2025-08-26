@@ -24,9 +24,11 @@ For Cursor and Claude Desktop, add this to your MCP settings:
       "env": {
         "CUBE_API_KEY": "your_api_key_here",
         "CUBE_TENANT_NAME": "your_tenant_name",
-        "CUBE_AGENT_ID": "your_agent_id"
+        "CUBE_AGENT_ID": "your_agent_id",
+        "CUBE_EXTERNAL_ID": "user@example.com"
       }
     }
+    
   }
 }
 ```
@@ -36,6 +38,7 @@ For Cursor and Claude Desktop, add this to your MCP settings:
 * CUBE_API_KEY - Navigate to **Admin -> Agent -> Click on Agent -> Enable API Key**.
 * CUBE_TENANT_NAME - Your tenant name from the URL, e.g. 'acme' in https://acme.cubecloud.dev
 * CUBE_AGENT_ID - Navigate to **Admin -> Agent -> Click on Agent** to find it.
+* CUBE_EXTERNAL_ID - A unique identifier for the user (e.g., email address or user ID) used for session generation and personalization.
 
 ## Cube Chat Examples
 
@@ -43,4 +46,4 @@ Ask questions like "Show me revenue trends" or "What are our top products?" to g
 
 ## Architecture
 
-Standard MCP server with tools, resources, and stdio transport. Integrates with Cube's streaming chat API using JWT authentication and tracks AI tool usage. Built with `@modelcontextprotocol/sdk`.
+Standard MCP server with tools, resources, and stdio transport. Integrates with Cube's streaming chat API using session-based authentication (API key → session → token) and supports user context through external IDs and user attributes. Built with `@modelcontextprotocol/sdk`.

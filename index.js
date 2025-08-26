@@ -9,7 +9,6 @@ import {
   ReadResourceRequestSchema,
   InitializeRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import jwt from "jsonwebtoken";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
 
@@ -21,7 +20,7 @@ export class CubeD3MCPServer {
     this.server = new Server(
       {
         name: "@cube-dev/mcp-server",
-        version: "1.0.0",
+        version: "1.1.0",
       },
       {
         capabilities: {
@@ -33,18 +32,20 @@ export class CubeD3MCPServer {
 
     // Configuration for Cube API - these should be provided via environment variables
     this.cubeConfig = {
-      baseUrl: "https://ai-engineer.cubecloud.dev",
+      chatBaseUrl: "https://ai-engineer.cubecloud.dev", // For chat API
+      authBaseUrl: process.env.CUBE_AUTH_BASE_URL || `https://${process.env.CUBE_TENANT_NAME}.cubecloud.dev`, // For auth endpoints
       tenantName: process.env.CUBE_TENANT_NAME,
       agentId: process.env.CUBE_AGENT_ID,
-      secret: process.env.CUBE_API_KEY, // From Admin → Agents → API Key
+      apiKey: process.env.CUBE_API_KEY, // API Key from Admin → Agents → API Key
+      externalId: process.env.CUBE_EXTERNAL_ID, // External user ID for session generation
     };
 
     this.setupHandlers();
   }
 
-  // Generate JWT token for Cube API authentication
-  generateJWT() {
-    if (!this.cubeConfig.secret) {
+  // Generate session using API key
+  async generateSession(externalId, userAttributes = []) {
+    if (!this.cubeConfig.apiKey) {
       throw new Error("Cube API key not configured. Set CUBE_API_KEY environment variable.");
     }
 
@@ -52,23 +53,75 @@ export class CubeD3MCPServer {
       throw new Error("Cube tenant name not configured. Set CUBE_TENANT_NAME environment variable.");
     }
 
+    if (!externalId) {
+      throw new Error("externalId is required for session generation.");
+    }
+
+    const url = `${this.cubeConfig.authBaseUrl}/api/v1/embed/generate-session`;
+    const body = {
+      externalId,
+      ...(userAttributes.length > 0 && { userAttributes })
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Api-Key ${this.cubeConfig.apiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Session generation failed: ${response.status} ${response.statusText}`);
+    }
+
+    const { sessionId } = await response.json();
+    return sessionId;
+  }
+
+  // Exchange session ID for token
+  async exchangeSessionForToken(sessionId) {
+    if (!sessionId) {
+      throw new Error("Session ID is required for token exchange.");
+    }
+
+    const url = `${this.cubeConfig.authBaseUrl}/api/v1/embed/session/token`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Api-Key ${this.cubeConfig.apiKey}`,
+      },
+      body: JSON.stringify({ sessionId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Token exchange failed: ${response.status} ${response.statusText}`);
+    }
+
+    const { token } = await response.json();
+    return token;
+  }
+
+  // Stream chat with Cube AI agent
+  async streamCubeChat(chatId, input, externalId = null, userAttributes = []) {
     if (!this.cubeConfig.agentId) {
       throw new Error("Cube agent ID not configured. Set CUBE_AGENT_ID environment variable.");
     }
 
-    const payload = {
-      iss: 'mcp-server',
-      aud: 'ai-engineer',
-      exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
-    };
+    // Use provided externalId or fall back to configured one
+    const userExternalId = externalId || this.cubeConfig.externalId;
+    if (!userExternalId) {
+      throw new Error("External ID not provided. Set CUBE_EXTERNAL_ID environment variable or provide externalId parameter.");
+    }
 
-    return jwt.sign(payload, this.cubeConfig.secret);
-  }
-
-  // Stream chat with Cube AI agent
-  async streamCubeChat(chatId, input) {
-    const token = this.generateJWT();
-    const url = `${this.cubeConfig.baseUrl}/api/v1/public/${this.cubeConfig.tenantName}/agents/${this.cubeConfig.agentId}/chat/stream-chat-state`;
+    // Generate session and exchange for token
+    const sessionId = await this.generateSession(userExternalId, userAttributes);
+    const token = await this.exchangeSessionForToken(sessionId);
+    
+    const url = `${this.cubeConfig.chatBaseUrl}/api/v1/public/${this.cubeConfig.tenantName}/agents/${this.cubeConfig.agentId}/chat/stream-chat-state`;
     
     const response = await fetch(url, {
       method: 'POST',
@@ -100,7 +153,7 @@ export class CubeD3MCPServer {
         },
         serverInfo: {
           name: "@cube-dev/mcp-server",
-          version: "1.0.0",
+          version: "1.1.0",
         },
       };
     });
@@ -122,6 +175,28 @@ export class CubeD3MCPServer {
                 type: "string",
                 description: "Unique chat session ID (optional, will be generated if not provided)",
               },
+              externalId: {
+                type: "string",
+                description: "Unique identifier for the user (optional, falls back to CUBE_EXTERNAL_ID environment variable)",
+              },
+              userAttributes: {
+                type: "array",
+                description: "Array of user attributes for personalized responses and row-level security (optional)",
+                items: {
+                  type: "object",
+                  properties: {
+                    name: {
+                      type: "string",
+                      description: "Attribute name (must match an attribute configured in admin panel)",
+                    },
+                    value: {
+                      type: "string",
+                      description: "Attribute value (e.g., 'San Francisco', 'Engineering')",
+                    },
+                  },
+                  required: ["name", "value"],
+                },
+              },
             },
             required: ["message"],
           },
@@ -137,7 +212,10 @@ export class CubeD3MCPServer {
         case "chat":
           try {
             const chatId = args.chatId || `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            const response = await this.streamCubeChat(chatId, args.message);
+            const userAttributes = args.userAttributes || [];
+            const usedExternalId = args.externalId || this.cubeConfig.externalId;
+            
+            const response = await this.streamCubeChat(chatId, args.message, args.externalId, userAttributes);
             
             let streamContent = "";
             let allMessages = [];
@@ -200,7 +278,7 @@ export class CubeD3MCPServer {
                 },
                 {
                   type: "text",
-                  text: `\n\n📊 **Cube Chat Session Complete**\nChat ID: ${chatId}\nTotal messages processed: ${allMessages.length}`,
+                  text: `\n\n📊 **Cube Chat Session Complete**\nChat ID: ${chatId}\nExternal ID: ${usedExternalId}\nUser Attributes: ${userAttributes.length > 0 ? JSON.stringify(userAttributes, null, 2) : 'None'}\nTotal messages processed: ${allMessages.length}`,
                 },
               ],
             };
@@ -210,7 +288,7 @@ export class CubeD3MCPServer {
               content: [
                 {
                   type: "text",
-                  text: `❌ Error calling Cube API: ${error.message}\n\nPlease ensure your environment variables are set:\n- CUBE_API_KEY: Your API key from Admin → Agents → API Key\n- CUBE_TENANT_NAME: Your tenant name (default: "cloud")\n- CUBE_AGENT_ID: Your agent ID (default: "2")`,
+                  text: `❌ Error calling Cube API: ${error.message}\n\nPlease ensure your environment variables are set:\n- CUBE_API_KEY: Your API key from Admin → Agents → API Key\n- CUBE_TENANT_NAME: Your tenant name (e.g., "acme")\n- CUBE_AGENT_ID: Your agent ID (e.g., "2")\n- CUBE_EXTERNAL_ID: External user ID for session generation (e.g., "user@example.com")\n- CUBE_AUTH_BASE_URL: (optional) Override auth base URL if different from https://{tenant}.cubecloud.dev`,
                 },
               ],
             };
@@ -250,7 +328,7 @@ export class CubeD3MCPServer {
               {
                 uri,
                 mimeType: "text/plain",
-                                  text: "Cube MCP Server\\nVersion: 1.0.0\\nCreated for Cube.js enterprise examples\\n\\nThis server provides chat functionality for analytics and data exploration with Cube AI.",
+                                  text: "Cube MCP Server\\nVersion: 1.1.0\\nCreated for Cube.js enterprise examples\\n\\nThis server provides chat functionality for analytics and data exploration with Cube AI.",
               },
             ],
           };
@@ -263,7 +341,7 @@ export class CubeD3MCPServer {
                 mimeType: "application/json",
                 text: JSON.stringify({
                   serverName: "@cube-dev/mcp-server",
-                  version: "1.0.0",
+                  version: "1.1.0",
                   features: ["chat"],
                   description: "A Cube MCP server for analytics and data exploration",
                 }, null, 2),
