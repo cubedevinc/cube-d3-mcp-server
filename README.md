@@ -28,7 +28,6 @@ For Cursor and Claude Desktop, add this to your MCP settings:
         "USER_ID": "user@example.com"
       }
     }
-    
   }
 }
 ```
